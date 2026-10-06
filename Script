@@ -1,12 +1,6 @@
 -- ===== [ NHÁNH 1: CẤU HÌNH BIẾN & DỮ LIỆU ] =====
 local defaultGuiUrl = "https://raw.githubusercontent.com/hacolord/gui/refs/heads/main/gui"
-
-local keyTable = {
-    ["TRACKER"] = "https://api.jnkie.com/api/v1/luascripts/public/343e855d45503c954284ddde7a2abf6d2373135a87a4d1b310a244c40daec3c2/download",
-    ["VOID"]    = "https://api.jnkie.com/api/v1/luascripts/public/f60d14811f882fbf6fb72382834cc4f762a85313884813a4c495a8e96702d446/download",
-    ["TP"]      = "https://api.jnkie.com/api/v1/luascripts/public/88f064d48ad2706982cae18c5177722a812b93dcaef9648609ce5fdfe00a55e5/download",
-    ["AVOID"]   = "https://api.jnkie.com/api/v1/luascripts/public/fabc4e6277700e9ea5c10f18854f6f9d93b511763786b6deb7c5c30dee5346ac/download"
-}
+local jnkieUrl = "https://api.jnkie.com/api/v1/luascripts/public/827a9d5bbe843abe54206c65ca0eee5933d46a067a5390630df2f6d3e49de48b/download"
 
 -- ===== [ NHÁNH 2: TẠO GIAO DIỆN NHẬP KEY NHỎ GỌN (RAYFIELD) ] =====
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
@@ -35,7 +29,7 @@ KeyTab:CreateInput({
 })
 
 -- ===== [ NHÁNH 3: HÀM KIỂM TRA KEY VÀ TẢI LOGIC JNKIE ] =====
-local function safeLoadJnkie(name, url)
+local function safeLoadJnkie(url)
     local maxRetries = 2
     for i = 1, maxRetries do
         local success, response = pcall(function()
@@ -49,16 +43,16 @@ local function safeLoadJnkie(name, url)
             if func then
                 local execSuccess, execErr = pcall(func)
                 if execSuccess then
-                    print("[Jnkie Loaded Successfully]: " .. name)
+                    print("[Jnkie Loaded Successfully]")
                     return true
                 else
-                    warn("[Jnkie Exec Error - " .. name .. "]: " .. tostring(execErr))
+                    warn("[Jnkie Exec Error]: " .. tostring(execErr))
                 end
             else
-                warn("[Jnkie Loadstring Compile Error - " .. name .. "]: " .. tostring(loadErr))
+                warn("[Jnkie Loadstring Compile Error]: " .. tostring(loadErr))
             end
         else
-            warn("[Jnkie Download Failed / Invalid Response - " .. name .. "] Lần thử " .. i .. "/" .. maxRetries)
+            warn("[Jnkie Download Failed / Invalid Response] Lần thử " .. i .. "/" .. maxRetries)
         end
         
         task.wait(0.5)
@@ -83,8 +77,8 @@ KeyTab:CreateButton({
        -- Gán Key chính xác vào môi trường toàn cục
        getgenv().SCRIPT_KEY = cleanKey
 
-       -- Thử tải trước 1 URL của Jnkie để xác nhận Key đúng
-       local isKeyValid = safeLoadJnkie("TRACKER", keyTable["TRACKER"])
+       -- Thử tải duy nhất Script Jnkie
+       local isKeyValid = safeLoadJnkie(jnkieUrl)
 
        if isKeyValid then
            Rayfield:Notify({Title = "Thành công!", Content = "Key hợp lệ, đang mở Gui...", Duration = 2})
@@ -93,16 +87,7 @@ KeyTab:CreateButton({
            task.wait(0.5)
            Rayfield:Destroy()
 
-           -- 2. TẢI CÁC URL JNKIE CÒN LẠI
-           task.spawn(function()
-               safeLoadJnkie("VOID", keyTable["VOID"])
-               task.wait(0.3)
-               safeLoadJnkie("TP", keyTable["TP"])
-               task.wait(0.3)
-               safeLoadJnkie("AVOID", keyTable["AVOID"])
-           end)
-
-           -- 3. CHỈ KHỞI ĐỘNG GUI GITHUB KHI KEY ĐÃ ĐÚNG VÀ CÁC NGUYÊN NGUỒN CƠ BẢN ĐÃ KÍCH HOẠT
+           -- 2. TẢI GUI GITHUB KHI KEY ĐÃ ĐÚNG VÀ JNKIE ĐÃ KÍCH HOẠT
            task.spawn(function()
                local guiSuccess, guiErr = pcall(function()
                    loadstring(game:HttpGet(defaultGuiUrl))()
